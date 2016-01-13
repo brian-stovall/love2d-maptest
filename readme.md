@@ -3,3 +3,9 @@ I hope to animate from spritesheets and have some interaction with a background 
 including boundaries that stop the character and hopefully some way to have
 scripts fire at certain map co-ordinates!
 
+Credits: 
+The awesome team at love2d (love2d.org)
+Roberto Ierusalmischy for making Lua a great language
+Johannes Sjolund for making an inspiring spritesheet
+(http://opengameart.org/content/character-animations-clothes-armor-weapons-skeleton-enemy-combat-dummy)
+
