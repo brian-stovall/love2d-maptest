@@ -1,6 +1,8 @@
 function love.load()
 	spriteList =  {}
 	local avatar = Sprite('image/avatar.png') 
+	avatar.speed = math.floor(.25 * love.graphics.getWidth())
+	avatar.scale = .17 * love.graphics.getWidth() / 64
 	avatar = makeAnims(avatar, {'up', 'left', 'down', 'right'}, 9, 6.5, 64, 64)
 	spriteList['avatar'] = avatar
 	spriteList.avatar['changeFrame'] = function (sprite, dt) 
@@ -8,7 +10,7 @@ function love.load()
 		if sprite.stopped == true then
 			sprite.frame = 1
 		else
-			sprite.fullSecs = fullSecs + dt * framerate
+			sprite.fullSecs = sprite.fullSecs + dt * sprite.frameRate
 			if sprite.fullSecs >= 1 then
 				sprite.frame = sprite.frame + math.floor(sprite.fullSecs)
 				sprite.fullSecs = sprite.fullSecs - math.floor(sprite.fullSecs)
@@ -16,8 +18,27 @@ function love.load()
 			if sprite.frame > 9 then sprite.frame = (sprite.frame % 9) + 1 end
 		end
 	end
-	
-	spriteList.avatar.costume = 'up'
+
+	spriteList.avatar.walk = function (direction) 
+		local avatar = spriteList.avatar
+		avatar.costume = direction
+		avatar.stopped = false
+		if direction == 'down' then avatar.dy = avatar.speed
+		elseif direction == 'up' then avatar.dy = -avatar.speed
+		elseif direction == 'right' then avatar.dx = avatar.speed
+		elseif direction == 'left' then avatar.dx = -avatar.speed
+		end
+  end
+
+	spriteList.avatar.stop = function(direction)
+		local avatar = spriteList.avatar
+		if direction == 'down' or direction == 'up' then avatar.dy = 0
+		elseif direction == 'right' or direction == 'left' then avatar.dx = 0
+		end
+		if avatar.dx == 0 and avatar.dy == 0 then avatar.stopped = true end
+	end
+
+	spriteList.avatar.costume = 'down'
 end
 
 
@@ -54,6 +75,7 @@ end
 function love.update(dt)
 	for _, sprite in pairs(spriteList) do
 		sprite.x = sprite.x + sprite.dx * dt
+		sprite.y = sprite.y + sprite.dy * dt
 		if sprite.changeFrame ~= nil then sprite.changeFrame(sprite, dt) end
 	end
 end
@@ -61,15 +83,28 @@ end
 function love.keypressed( keyPress, scancode, isrepreat )
 	if keyPress == 'escape' then love.event.quit() end
 	local isLegal = false
-	for k in pairs({'up', 'left', 'down', 'right'}) do
-		if keyPress == k then isLegal = true end
+	for _, v in pairs({'up', 'left', 'down', 'right'}) do
+		if keyPress == v then isLegal = true end
+	end
+	if isLegal == true then
+		spriteList.avatar.walk(keyPress)
 	end
 end
 
 function love.keyreleased( keyPress )
-	--if keyPress == direction then stopped = true end
+	local isLegal = false
+	for _, v in pairs({'up', 'left', 'down', 'right'}) do
+		if keyPress == v then isLegal = true end
+	end
+	if isLegal == true then
+		spriteList.avatar.stop(keyPress)
+	end
 end
 
 function love.draw()
-		--love.graphics.draw(avatar, anims[direction][frame], avatarX, avatarY, 0, 2)
+	for _, sprite in pairs(spriteList) do
+		love.graphics.draw(sprite.img, sprite.costumes[sprite.costume][sprite.frame], 
+		sprite.x, sprite.y, 0, sprite.scale)
+		love.graphics.print(sprite.scale, 0,0)
+	end
 end
