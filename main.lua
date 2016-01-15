@@ -5,8 +5,8 @@ function love.load()
 	local avatar = Sprite('image/avatar.png') 
 	avatar.speed = math.floor(.15 * love.graphics.getWidth())
 	avatar.scale = .07 * love.graphics.getWidth() / 64
-	avatar.x = love.graphics.getWidth() / 2
-	avatar.y = love.graphics.getHeight() / 2
+	avatar.x = 0
+	avatar.y = 0
 	avatar = makeAnims(avatar, {'up', 'left', 'down', 'right'}, 9, 6.5, 64, 64)
 	spriteList['avatar'] = avatar
 	spriteList.avatar['changeFrame'] = function (sprite, dt) 
@@ -51,10 +51,15 @@ function love.load()
 	map.layers['playerStart'].visible = false
 	map.layers['blocked'].visible = false
 	map:setDrawRange(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+	map.totWidth = map.width * map.tilewidth
+	map.totHeight = map.height * map.tileheight
 	map.x = 0
 	map.y = 0
 	map.dx = 0
 	map.dy = 0
+	--these are the upper bounds for map.x/y
+	map.xStop = map.totWidth - love.graphics.getWidth() / 2
+	map.yStop = map.totHeight - love.graphics.getHeight() / 2
 	map.speed = avatar.speed
 	map.move = function(direction)
 			  if direction == 'down' then map.dy = map.speed
@@ -114,7 +119,11 @@ function love.update(dt)
 	--map update
 	map:update(dt)
 	map.x = map.x + map.dx * dt
+	if map.x < 0 then map.x = 0 
+	elseif map.x > map.xStop then map.x = map.xStop end
 	map.y = map.y + map.dy * dt
+	if map.y < 0 then map.y = 0 
+	elseif map.y > map.yStop then map.y = map.yStop end
 end
 
 function love.keypressed( keyPress)
@@ -142,24 +151,25 @@ end
 
 function love.draw()
 	--map drawing code
-	local scale = 1.5
+	local scale = 2
 	local screenW = love.graphics.getWidth() / scale
 	local screenH = love.graphics.getHeight() / scale
-	local tx = math.floor(map.x - screenW / 2)
-	local ty = math.floor(map.y - screenH / 2)
+	--local tx = math.floor(map.x)
+	--local ty = math.floor(map.y)
 	love.graphics.scale(scale)
-	love.graphics.translate(-tx, -ty)
+	love.graphics.translate(-map.x, -map.y)
 	map:draw()
 	love.graphics.scale(1)
-	love.graphics.translate(tx,ty)
+	love.graphics.translate(map.x, map.y)
 	local locText = math.floor(map.x) .. ', ' .. math.floor(map.y)
 	love.graphics.print(locText, 0,0)
+	love.graphics.print(map.totWidth .. ', ' .. map.totHeight, 0,10)
 
 	--non-map sprite drawing code
 	for _, sprite in pairs(spriteList) do
 		love.graphics.draw(sprite.img, sprite.costumes[sprite.costume][sprite.frame], 
 		sprite.x, sprite.y, 0, sprite.scale)
 		locText = math.floor(sprite.x) .. ', ' .. math.floor(sprite.y)
-		love.graphics.print(locText, 0,10)
+		love.graphics.print(locText, 0,20)
 	end
 end
