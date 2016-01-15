@@ -1,8 +1,10 @@
+local sti = require "sti"
+
 function love.load()
 	spriteList =  {}
 	local avatar = Sprite('image/avatar.png') 
-	avatar.speed = math.floor(.25 * love.graphics.getWidth())
-	avatar.scale = .17 * love.graphics.getWidth() / 64
+	avatar.speed = math.floor(.15 * love.graphics.getWidth())
+	avatar.scale = .07 * love.graphics.getWidth() / 64
 	avatar = makeAnims(avatar, {'up', 'left', 'down', 'right'}, 9, 6.5, 64, 64)
 	spriteList['avatar'] = avatar
 	spriteList.avatar['changeFrame'] = function (sprite, dt) 
@@ -39,6 +41,32 @@ function love.load()
 	end
 
 	spriteList.avatar.costume = 'down'
+	
+	--load map
+  map = sti.new('/map/testMap.lua')
+	map.layers['playerStart'].visible = false
+	map.layers['blocked'].visible = false
+	map:setDrawRange(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+	map.x = 0
+	map.y = 0
+	map.dx = 0
+	map.dy = 0
+	map.speed = avatar.speed
+	map.move = function(direction)
+			  if direction == 'down' then map.dy = map.speed
+		elseif direction == 'up' then map.dy = -map.speed
+		elseif direction == 'right' then map.dx = map.speed
+		elseif direction == 'left' then map.dx = -map.speed
+		end
+	end
+	
+	map.stop = function(direction)
+		    if direction == 'down' and map.dy == map.speed  then map.dy = 0
+		elseif direction == 'up' and map.dy == -map.speed  then map.dy = 0
+		elseif direction == 'right' and map.dx == map.speed  then map.dx = 0
+		elseif direction == 'left' and map.dx == -map.speed  then map.dx = 0
+		end
+	end
 end
 
 
@@ -73,14 +101,19 @@ function makeAnims (sprite, costumes, framesPerRow, frameRate, cellHeight, cellW
 end
 
 function love.update(dt)
+	--sprite update
 	for _, sprite in pairs(spriteList) do
 		sprite.x = sprite.x + sprite.dx * dt
 		sprite.y = sprite.y + sprite.dy * dt
 		if sprite.changeFrame ~= nil then sprite.changeFrame(sprite, dt) end
 	end
+	--map update
+	map:update(dt)
+	map.x = map.x + map.dx * dt
+	map.y = map.y + map.dy * dt
 end
 
-function love.keypressed( keyPress, scancode, isrepreat )
+function love.keypressed( keyPress)
 	if keyPress == 'escape' then love.event.quit() end
 	local isLegal = false
 	for _, v in pairs({'up', 'left', 'down', 'right'}) do
@@ -88,6 +121,7 @@ function love.keypressed( keyPress, scancode, isrepreat )
 	end
 	if isLegal == true then
 		spriteList.avatar.walk(keyPress)
+		map.move(keyPress)
 	end
 end
 
@@ -98,13 +132,29 @@ function love.keyreleased( keyPress )
 	end
 	if isLegal == true then
 		spriteList.avatar.stop(keyPress)
+		map.stop(keyPress)
 	end
 end
 
 function love.draw()
+	--map drawing code
+	local scale = 1.5
+	local screenW = love.graphics.getWidth() / scale
+	local screenH = love.graphics.getHeight() / scale
+	local tx = math.floor(map.x - screenW / 2)
+	local ty = math.floor(map.y - screenH / 2)
+	love.graphics.scale(scale)
+	love.graphics.translate(-tx, -ty)
+	map:draw()
+	love.graphics.scale(1)
+	love.graphics.translate(tx,ty)
+	local locText = math.floor(map.x) .. ', ' .. math.floor(map.y)
+	love.graphics.print(locText, 0,0)
+
+	--non-map sprite drawing code
 	for _, sprite in pairs(spriteList) do
 		love.graphics.draw(sprite.img, sprite.costumes[sprite.costume][sprite.frame], 
 		sprite.x, sprite.y, 0, sprite.scale)
-		love.graphics.print(sprite.scale, 0,0)
+		--love.graphics.print(sprite.scale, 0,0)
 	end
 end
