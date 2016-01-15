@@ -5,6 +5,8 @@ function love.load()
 	local avatar = Sprite('image/avatar.png') 
 	avatar.speed = math.floor(.15 * love.graphics.getWidth())
 	avatar.scale = .07 * love.graphics.getWidth() / 64
+	avatar.x = love.graphics.getWidth() / 2
+	avatar.y = love.graphics.getHeight() / 2
 	avatar = makeAnims(avatar, {'up', 'left', 'down', 'right'}, 9, 6.5, 64, 64)
 	spriteList['avatar'] = avatar
 	spriteList.avatar['changeFrame'] = function (sprite, dt) 
@@ -34,8 +36,10 @@ function love.load()
 
 	spriteList.avatar.stop = function(direction)
 		local avatar = spriteList.avatar
-		if direction == 'down' or direction == 'up' then avatar.dy = 0
-		elseif direction == 'right' or direction == 'left' then avatar.dx = 0
+		    if direction == 'down' and avatar.dy == avatar.speed  then avatar.dy = 0
+		elseif direction == 'up' and avatar.dy == -avatar.speed  then avatar.dy = 0
+		elseif direction == 'right' and avatar.dx == avatar.speed  then avatar.dx = 0
+		elseif direction == 'left' and avatar.dx == -avatar.speed  then avatar.dx = 0
 		end
 		if avatar.dx == 0 and avatar.dy == 0 then avatar.stopped = true end
 	end
@@ -155,6 +159,7 @@ function love.draw()
 	for _, sprite in pairs(spriteList) do
 		love.graphics.draw(sprite.img, sprite.costumes[sprite.costume][sprite.frame], 
 		sprite.x, sprite.y, 0, sprite.scale)
-		--love.graphics.print(sprite.scale, 0,0)
+		locText = math.floor(sprite.x) .. ', ' .. math.floor(sprite.y)
+		love.graphics.print(locText, 0,10)
 	end
 end
