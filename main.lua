@@ -4,14 +4,10 @@ function love.load()
 	spriteList =  {}
 	local avatar = Sprite('image/avatar.png') 
 	avatar.speed = math.floor(.15 * love.graphics.getWidth())
-	avatar.scale = .15 * love.graphics.getWidth() / 64
-	avatar.x = 400
-	avatar.y = 0
-	--the box in which the avatar moves
-	avatar.xStop = {['left'] = math.floor(.3 * love.graphics.getWidth()),
-									['right'] = math.floor(.7 * love.graphics.getWidth())}
-	avatar.yStop = {['top'] = math.floor(.3 * love.graphics.getHeight()),
-									['bottom'] = math.floor(.7 * love.graphics.getHeight())}
+	avatar.spriteSize = 64
+	avatar.scale = .15 * love.graphics.getWidth() / avatar.spriteSize
+	avatar.x = love.graphics.getWidth()/2 - avatar.spriteSize
+	avatar.y = love.graphics.getHeight()/2 - avatar.spriteSize
 	avatar = makeAnims(avatar, {'up', 'left', 'down', 'right'}, 9, 6.5, 64, 64)
 	spriteList['avatar'] = avatar
 	spriteList.avatar['changeFrame'] = function (sprite, dt) 
@@ -117,14 +113,13 @@ end
 function love.update(dt)
 	--sprite update
 	for _, sprite in pairs(spriteList) do
+		--[[
 		sprite.x = sprite.x + sprite.dx * dt
 		if sprite.x < sprite.xStop.left then sprite.x = sprite.xStop.left 
 		elseif sprite.x > sprite.xStop.right then sprite.x = sprite.xStop.right 
 		end
 		sprite.y = sprite.y + sprite.dy * dt
-		if sprite.y < sprite.yStop.top then sprite.y = sprite.yStop.top 
-		elseif sprite.y > sprite.yStop.bottom then sprite.y = sprite.yStop.bottom 
-		end
+		end]]--
 		if sprite.changeFrame ~= nil then sprite.changeFrame(sprite, dt) end
 	end
 	--map update
@@ -179,7 +174,7 @@ function love.draw()
 		sprite.x, sprite.y, 0, sprite.scale)
 		locText = math.floor(sprite.x) .. ', ' .. math.floor(sprite.y)
 		love.graphics.print(locText, 0,10)
-		locText = math.floor(sprite.xStop.left) .. ', ' .. math.floor(sprite.xStop.right)
+		--locText = math.floor(sprite.xStop.left) .. ', ' .. math.floor(sprite.xStop.right)
 		love.graphics.print(locText, 0,20)
 		love.graphics.print(love.graphics.getWidth() .. ', ' .. love.graphics.getHeight())
 	end
