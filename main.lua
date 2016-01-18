@@ -110,11 +110,19 @@ end
 
 function love.update(dt)
 	--sprite update
-		if avatar.dx < 0 and (map.x == 0 or avatar.x > avatar.xHome) then	
+		if avatar.dx < 0 and (map.x == 0 or avatar.x >= avatar.xHome) then	
 			avatar.x = avatar.x + avatar.dx * dt
+		elseif avatar.dx > 0 and (map.x == map.xStop or avatar.x <= avatar.xHome) then	
+			avatar.x = avatar.x + avatar.dx * dt
+		else
+			avatar.dx = 0
 		end
-		if avatar.dx > 0 and (map.x == map.xStop or avatar.x < avatar.xHome) then	
-			avatar.x = avatar.x + avatar.dx * dt
+		if avatar.dy < 0 and (map.y == 0 or avatar.y >= avatar.yHome) then	
+			avatar.y = avatar.y + avatar.dy * dt
+		elseif avatar.dy > 0 and (map.y == map.yStop or avatar.y <= avatar.yHome) then	
+			avatar.y = avatar.y + avatar.dy * dt
+		else
+			avatar.dy = 0
 		end
 		--sprite.y = sprite.y + sprite.dy * dt
 		avatar.changeFrame(avatar, dt) 
@@ -125,9 +133,11 @@ function love.update(dt)
 		if map.x < 0 then map.x = 0 
 		elseif map.x > map.xStop then map.x = map.xStop end
 	end
-	map.y = map.y + map.dy * dt
-	if map.y < 0 then map.y = 0 
-	elseif map.y > map.yStop then map.y = map.yStop end
+	if avatar.dy == 0 then
+		map.y = map.y + map.dy * dt
+		if map.y < 0 then map.y = 0 
+		elseif map.y > map.yStop then map.y = map.yStop end
+	end
 end
 
 function love.keypressed( keyPress)
