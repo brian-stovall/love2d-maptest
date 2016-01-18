@@ -1,16 +1,16 @@
 local sti = require "sti"
 
 function love.load()
-	spriteList =  {}
-	local avatar = Sprite('image/avatar.png') 
+	avatar = Sprite('image/avatar.png') 
 	avatar.speed = math.floor(.15 * love.graphics.getWidth())
 	avatar.spriteSize = 64
 	avatar.scale = .15 * love.graphics.getWidth() / avatar.spriteSize
-	avatar.x = love.graphics.getWidth()/2 - avatar.spriteSize
-	avatar.y = love.graphics.getHeight()/2 - avatar.spriteSize
+	avatar.xHome = love.graphics.getWidth()/2 - avatar.spriteSize
+	avatar.x = avatar.xHome
+	avatar.yHome = love.graphics.getHeight()/2 - avatar.spriteSize
+	avatar.y = avatar.yHome
 	avatar = makeAnims(avatar, {'up', 'left', 'down', 'right'}, 9, 6.5, 64, 64)
-	spriteList['avatar'] = avatar
-	spriteList.avatar['changeFrame'] = function (sprite, dt) 
+	avatar['changeFrame'] = function (sprite, dt) 
 		--animation frame selecting code
 		if sprite.stopped == true then
 			sprite.frame = 1
@@ -24,8 +24,7 @@ function love.load()
 		end
 	end
 
-	spriteList.avatar.walk = function (direction) 
-		local avatar = spriteList.avatar
+	avatar.walk = function (direction) 
 		avatar.costume = direction
 		avatar.stopped = false
 		if direction == 'down' then avatar.dy = avatar.speed
@@ -35,8 +34,7 @@ function love.load()
 		end
   end
 
-	spriteList.avatar.stop = function(direction)
-		local avatar = spriteList.avatar
+	avatar.stop = function(direction)
 		    if direction == 'down' and avatar.dy == avatar.speed  then avatar.dy = 0
 		elseif direction == 'up' and avatar.dy == -avatar.speed  then avatar.dy = 0
 		elseif direction == 'right' and avatar.dx == avatar.speed  then avatar.dx = 0
@@ -45,7 +43,7 @@ function love.load()
 		if avatar.dx == 0 and avatar.dy == 0 then avatar.stopped = true end
 	end
 
-	spriteList.avatar.costume = 'down'
+	avatar.costume = 'down'
 	
 	--load map
   map = sti.new('/map/testMap.lua')
@@ -112,21 +110,21 @@ end
 
 function love.update(dt)
 	--sprite update
-	for _, sprite in pairs(spriteList) do
-		--[[
-		sprite.x = sprite.x + sprite.dx * dt
-		if sprite.x < sprite.xStop.left then sprite.x = sprite.xStop.left 
-		elseif sprite.x > sprite.xStop.right then sprite.x = sprite.xStop.right 
+		if avatar.dx < 0 and (map.x == 0 or avatar.x > avatar.xHome) then	
+			avatar.x = avatar.x + avatar.dx * dt
 		end
-		sprite.y = sprite.y + sprite.dy * dt
-		end]]--
-		if sprite.changeFrame ~= nil then sprite.changeFrame(sprite, dt) end
-	end
+		if avatar.dx > 0 and (map.x == map.xStop or avatar.x < avatar.xHome) then	
+			avatar.x = avatar.x + avatar.dx * dt
+		end
+		--sprite.y = sprite.y + sprite.dy * dt
+		avatar.changeFrame(avatar, dt) 
 	--map update
 	map:update(dt)
-	map.x = map.x + map.dx * dt
-	if map.x < 0 then map.x = 0 
-	elseif map.x > map.xStop then map.x = map.xStop end
+	if avatar.dx == 0 then
+		map.x = map.x + map.dx * dt
+		if map.x < 0 then map.x = 0 
+		elseif map.x > map.xStop then map.x = map.xStop end
+	end
 	map.y = map.y + map.dy * dt
 	if map.y < 0 then map.y = 0 
 	elseif map.y > map.yStop then map.y = map.yStop end
@@ -139,7 +137,7 @@ function love.keypressed( keyPress)
 		if keyPress == v then isLegal = true end
 	end
 	if isLegal == true then
-		spriteList.avatar.walk(keyPress)
+		avatar.walk(keyPress)
 		map.move(keyPress)
 	end
 end
@@ -150,7 +148,7 @@ function love.keyreleased( keyPress )
 		if keyPress == v then isLegal = true end
 	end
 	if isLegal == true then
-		spriteList.avatar.stop(keyPress)
+		avatar.stop(keyPress)
 		map.stop(keyPress)
 	end
 end
@@ -166,16 +164,14 @@ function love.draw()
 	love.graphics.translate(map.x, map.y)
 	love.graphics.scale(1/scale)
 	local locText = math.floor(map.x) .. ', ' .. math.floor(map.y)
-	--love.graphics.print(locText, 0,0)
+	love.graphics.print(locText, 0,0)
 
 	--non-map sprite drawing code
-	for _, sprite in pairs(spriteList) do
-		love.graphics.draw(sprite.img, sprite.costumes[sprite.costume][sprite.frame], 
-		sprite.x, sprite.y, 0, sprite.scale)
-		locText = math.floor(sprite.x) .. ', ' .. math.floor(sprite.y)
+		love.graphics.draw(avatar.img, avatar.costumes[avatar.costume][avatar.frame], 
+		avatar.x, avatar.y, 0, avatar.scale)
+		locText = math.floor(avatar.x) .. ', ' .. math.floor(avatar.y)
 		love.graphics.print(locText, 0,10)
 		--locText = math.floor(sprite.xStop.left) .. ', ' .. math.floor(sprite.xStop.right)
 		love.graphics.print(locText, 0,20)
 		love.graphics.print(love.graphics.getWidth() .. ', ' .. love.graphics.getHeight())
-	end
 end
