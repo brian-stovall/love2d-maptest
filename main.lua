@@ -124,7 +124,6 @@ function love.update(dt)
 		else
 			avatar.dy = 0
 		end
-		--sprite.y = sprite.y + sprite.dy * dt
 		avatar.changeFrame(avatar, dt) 
 	--map update
 	map:update(dt)
@@ -181,7 +180,6 @@ function love.draw()
 		avatar.x, avatar.y, 0, avatar.scale)
 		locText = math.floor(avatar.x) .. ', ' .. math.floor(avatar.y)
 		love.graphics.print(locText, 0,10)
-		--locText = math.floor(sprite.xStop.left) .. ', ' .. math.floor(sprite.xStop.right)
+		locText = math.floor(avatar.dx) .. ', ' .. math.floor(avatar.dy)
 		love.graphics.print(locText, 0,20)
-		love.graphics.print(love.graphics.getWidth() .. ', ' .. love.graphics.getHeight())
 end
